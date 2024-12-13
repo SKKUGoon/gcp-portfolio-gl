@@ -1,0 +1,280 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model calendar {
+  id                   Int                    @default(autoincrement())
+  year                 Int?
+  month                Int?
+  day                  Int?
+  date_str             String                 @id @db.VarChar
+  weekday              Int?
+  month_first_day      Boolean?
+  month_last_day       Boolean?
+  business_day         Boolean?
+  trade_day            Boolean?
+  exchange_opened_day  Boolean?
+  settle_day           Boolean?
+  locals               locals[]
+  longterm_foreign     longterm_foreign[]
+  shortterm_foreign    shortterm_foreign[]
+  station_measure_time station_measure_time[]
+}
+
+model hjd {
+  sido_cd    String                  @db.VarChar
+  sido_nm    String                  @db.VarChar
+  sigungu_cd String                  @db.VarChar
+  sigungu_nm String                  @db.VarChar
+  adm_cd     String                  @id @db.VarChar
+  adm_nm     String                  @db.VarChar
+  geometry   Unsupported("geometry")
+  sec        sec[]
+}
+
+model locals {
+  date_str         String   @db.VarChar
+  hour             Int
+  sec_code         String   @db.VarChar
+  total_population Float?   @db.Real
+  male_00_09       Float?   @db.Real
+  male_10_14       Float?   @db.Real
+  male_15_19       Float?   @db.Real
+  male_20_24       Float?   @db.Real
+  male_25_29       Float?   @db.Real
+  male_30_34       Float?   @db.Real
+  male_35_39       Float?   @db.Real
+  male_40_44       Float?   @db.Real
+  male_45_49       Float?   @db.Real
+  male_50_54       Float?   @db.Real
+  male_55_59       Float?   @db.Real
+  male_60_64       Float?   @db.Real
+  male_65_69       Float?   @db.Real
+  male_70_up       Float?   @db.Real
+  female_00_09     Float?   @db.Real
+  female_10_14     Float?   @db.Real
+  female_15_19     Float?   @db.Real
+  female_20_24     Float?   @db.Real
+  female_25_29     Float?   @db.Real
+  female_30_34     Float?   @db.Real
+  female_35_39     Float?   @db.Real
+  female_40_44     Float?   @db.Real
+  female_45_49     Float?   @db.Real
+  female_50_54     Float?   @db.Real
+  female_55_59     Float?   @db.Real
+  female_60_64     Float?   @db.Real
+  female_65_69     Float?   @db.Real
+  female_70_up     Float?   @db.Real
+  calendar         calendar @relation(fields: [date_str], references: [date_str], onDelete: NoAction, onUpdate: NoAction, map: "fk_locals_date_str")
+  sec              sec      @relation(fields: [sec_code], references: [tot_reg_cd], onDelete: Cascade, onUpdate: NoAction, map: "fk_sec_code_locals")
+
+  @@id([date_str, hour, sec_code])
+}
+
+model longterm_foreign {
+  date_str         String   @db.VarChar
+  hour             Int
+  sec_code         String   @db.VarChar
+  total_population Float?   @db.Real
+  chinese          Float?   @db.Real
+  non_chinese      Float?   @db.Real
+  calendar         calendar @relation(fields: [date_str], references: [date_str], onDelete: NoAction, onUpdate: NoAction, map: "fk_longterm_foreign_date_str")
+  sec              sec      @relation(fields: [sec_code], references: [tot_reg_cd], onDelete: Cascade, onUpdate: NoAction, map: "fk_sec_code")
+
+  @@id([date_str, hour, sec_code])
+}
+
+model sec {
+  tot_reg_cd        String                  @id @db.VarChar
+  adm_nm            String                  @db.VarChar
+  adm_cd            String                  @db.VarChar
+  geometry          Unsupported("geometry")
+  locals            locals[]
+  longterm_foreign  longterm_foreign[]
+  hjd               hjd                     @relation(fields: [adm_cd], references: [adm_cd], onDelete: Cascade, onUpdate: NoAction, map: "fk_hjd_adm_cd")
+  shortterm_foreign shortterm_foreign[]
+}
+
+model station {
+  stn_id               String                 @id @db.VarChar(255)
+  lng                  Float?
+  lat                  Float?
+  stn_cd1              String?                @db.VarChar(255)
+  ht                   Float?
+  ht_pa                Float?
+  ht_ta                Float?
+  st_wd                Float?
+  st_rn                Float?
+  stn_cd2              String?                @db.VarChar(255)
+  stn_nm_kor           String?                @db.VarChar(255)
+  stn_nm_eng           String?                @db.VarChar(255)
+  fct_cd               String?                @db.VarChar(255)
+  pnu_bjd              String?                @db.VarChar(255)
+  updated_date         DateTime?              @db.Date
+  is_deleted           Boolean?
+  station_measure_time station_measure_time[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model dart {
+  id       Int     @default(autoincrement())
+  dart_cd  String? @db.VarChar
+  stock_cd String? @db.VarChar
+  year     Int?
+  month    Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model fs_stock {
+  id         Int     @default(autoincrement())
+  stock_type String? @db.VarChar
+  issued     Float?
+  treasury   Float?
+  distribute Float?
+  stock_cd   String? @db.VarChar
+  dart_cd    String? @db.VarChar
+  year       Int?
+  month      Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model krx_kospi {
+  id       Int     @default(autoincrement())
+  stock_cd String? @db.VarChar
+  year     Int?
+  month    Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model krx_kospi200 {
+  id       Int     @default(autoincrement())
+  stock_cd String? @db.VarChar
+  year     Int?
+  month    Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model krx_kospi_sector {
+  id       Int     @default(autoincrement())
+  stock_cd String? @db.VarChar
+  sector   String? @db.VarChar
+  year     Int?
+  month    Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model listed_shares {
+  id       Int     @default(autoincrement())
+  date     String  @db.VarChar
+  stock_cd String? @db.VarChar(50)
+  shares   BigInt?
+
+  @@ignore
+}
+
+model locations {
+  id            String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  location_type String                  @db.VarChar
+  location_name String                  @db.VarChar
+  address       String?                 @db.VarChar
+  geometry      Unsupported("geometry")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model market_caps {
+  id         Int     @default(autoincrement())
+  date       String  @db.VarChar
+  stock_cd   String? @db.VarChar(50)
+  market_cap BigInt?
+
+  @@ignore
+}
+
+model shortterm_foreign {
+  date_str         String   @db.VarChar
+  hour             Int
+  sec_code         String   @db.VarChar
+  total_population Float?   @db.Real
+  chinese          Float?   @db.Real
+  non_chinese      Float?   @db.Real
+  sec              sec      @relation(fields: [sec_code], references: [tot_reg_cd], onDelete: Cascade, onUpdate: NoAction, map: "fk_sec_code")
+  calendar         calendar @relation(fields: [date_str], references: [date_str], onDelete: NoAction, onUpdate: NoAction, map: "fk_shortterm_foreign_date_str")
+
+  @@id([date_str, hour, sec_code])
+}
+
+model station_measure_time {
+  date_str           String   @db.VarChar
+  hour               Int
+  stn_id             String   @db.VarChar(255)
+  wind_direction     Float?   @db.Real
+  wind_speed         Float?   @db.Real
+  gust_direction     Float?   @db.Real
+  gust_speed         Float?   @db.Real
+  gust_time          String?  @db.VarChar(255)
+  ground_hpa         Float?   @db.Real
+  sealevel_hpa       Float?   @db.Real
+  temperature        Float?   @db.Real
+  humidity           Float?   @db.Real
+  rain               Float?   @db.Real
+  rain_day1          Float?   @db.Real
+  rain_day2          Float?   @db.Real
+  rain_strength      Float?   @db.Real
+  snow_3hours        Float?   @db.Real
+  snow_day           Float?   @db.Real
+  snow_cumul         Float?   @db.Real
+  weather_report     String?  @db.VarChar(255)
+  cloud_total        Float?   @db.Real
+  cloud_mid_ht       Float?   @db.Real
+  cloud_min_ht       Float?   @db.Real
+  cloud_type         String?  @db.VarChar(255)
+  visibility         Float?   @db.Real
+  sun                String?  @db.VarChar(255)
+  status_ground      String?  @db.VarChar(255)
+  temperature_ground Float?   @db.Real
+  status_sealevel    String?  @db.VarChar(255)
+  wave               Float?   @db.Real
+  is_raining         String?  @db.VarChar(255)
+  calendar           calendar @relation(fields: [date_str], references: [date_str], onDelete: NoAction, onUpdate: NoAction, map: "fk_station_measure_time_date_str")
+  station            station  @relation(fields: [stn_id], references: [stn_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([date_str, hour, stn_id])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model trade_volumes {
+  id           Int     @default(autoincrement())
+  date         String  @db.VarChar
+  stock_cd     String  @db.VarChar
+  trade_volume BigInt?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model wics {
+  id       Int     @default(autoincrement())
+  stock_cd String? @db.VarChar
+  sector   String? @db.VarChar
+  year     Int?
+  month    Int?
+
+  @@ignore
+}
